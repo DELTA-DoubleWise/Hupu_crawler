@@ -4,16 +4,43 @@ import random
 import pymysql
 from bs4 import BeautifulSoup
 
+
 def sqldb(data_list):
-    db = pymysql.connect(host="localhost",user="root",passwd="DELTA113420root",database="hp",charset="utf8",port=3306)
+    db = pymysql.connect(host="localhost", user="root", passwd="bujiangwude", database="hp", charset="utf8", port=3306)
     cursor = db.cursor()
+
+    sql = 'INSERT INTO `hpNBA-all`(title,url,author,time,reply,view) VALUES(%s,%s,%s,%s,%s,%s)'
+    try:
+        cursor.executemany(sql, data_list)
+        db.commit()
+        print("execute successfully")
+    except Exception as e:
+        print("执行MySQL: %s 时出错：%s" % (sql, e))
+        db.rollback()
+
+    '''
     for data in data_list:
-        sql = "insert into hpNBA-all(title,url,author,time,reply,view) values (data[0],data[1],data[2],data[3],data[4],data[5])"
+        title=data[0]
+        url=data[1]
+        author=data[2]
+        time=data[3]
+        reply=data[4]
+        view=data[5]
+        print(type(title))
+        print(type(url))
+        print(type(author))
+        print(type(time))
+        print(type(reply))
+        print(type(view))
         try:
-            cursor.execute(sql)
+            sql = 'INSERT INTO `hpNBA-all`(title,url,author,time,reply,view)VALUES(%s,%s,%s,%s,%s,%d)'
+            print(sql)
+            cursor.execute(sql,(title,url,author,time,reply,view))
             db.commit()
-        except:
+        except Exception as e:
+            print("执行MySQL: %s 时出错：%s" % (sql, e)) 
             db.rollback()
+    '''
     db.close()
 
 def get_pages(page_url):
@@ -37,9 +64,11 @@ def parse_pages(page_soup):
         post_time = post.find('div',class_='post-time').text
         post_data = post.find('div',class_='post-datum').text
         post_reply = post_data.split('/')[0].strip()
+        post_reply = int(post_reply)
         post_view = post_data.split('/')[1].strip()
-        data_list.append([post_title,post_url,post_author,post_time,post_reply,post_view])
-    print(data_list)
+        post_view = int(post_view)
+        data_list.append((post_title,post_url,post_author,post_time,post_reply,post_view))
+    #print(data_list)
     return data_list
 
 url = 'https://bbs.hupu.com/vote-1'
